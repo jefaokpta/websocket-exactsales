@@ -22,17 +22,17 @@ class WsSoftphoneHandler: WebSocketHandler {
             .doFirst {
                 println("SESSION ID : ${session.id} CONECTOU")
             }
-            .map{add(it, session)}
+            .map{addSession(it, session)}
             .map(session::textMessage))
             .doFinally {
                 WsSessionCentral.sessions.values.remove(session)
                 println("SESSION FOI EMBORA ID: " + session.id)
             }
 
-    fun add(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession) =
-        ObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java).let {
-        WsSessionCentral.sessions["${it["userId"]}${it["orgId"]}"] = webSocketSession
-        webSocketMessage.payloadAsText
+    fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
+        val jsonNode = ObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
+        WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
+        return webSocketMessage.payloadAsText
     }
 
     fun sendMessage(call: Call) =
