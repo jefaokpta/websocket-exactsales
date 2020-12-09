@@ -2,10 +2,8 @@ package br.com.vip.websocketexactsales.controller
 
 import br.com.vip.websocketexactsales.model.Call
 import br.com.vip.websocketexactsales.websocket.handler.WsSoftphoneHandler
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
 
 /**
  * @author Jefferson Alves Reis (jefaokpta) < jefaokpta@hotmail.com >
@@ -14,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/api/call")
 class CallController(private val wsSoftphoneHandler: WsSoftphoneHandler) {
+
+    @GetMapping
+    fun testSSL() = Mono.just("SSL OK")
 
     @PostMapping
     fun doCall(@RequestBody call: Call) = wsSoftphoneHandler.sendMessage(call)

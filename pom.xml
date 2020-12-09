@@ -10,7 +10,7 @@
     </parent>
     <groupId>br.com.vip</groupId>
     <artifactId>websocket-exactsales</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1-SSL</version>
     <name>websocket-exactsales</name>
     <description>Web socket q recebe post e envia msg para webphone</description>
 
