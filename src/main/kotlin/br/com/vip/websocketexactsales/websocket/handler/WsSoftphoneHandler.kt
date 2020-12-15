@@ -1,6 +1,8 @@
 package br.com.vip.websocketexactsales.websocket.handler
 
 import br.com.vip.websocketexactsales.model.Call
+import br.com.vip.websocketexactsales.model.MessageType
+import br.com.vip.websocketexactsales.model.Status
 import br.com.vip.websocketexactsales.model.WsSessionCentral
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -13,6 +15,7 @@ import org.springframework.web.reactive.socket.WebSocketSession
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.lang.Exception
 import java.util.*
 
 @Service
@@ -30,13 +33,23 @@ class WsSoftphoneHandler: WebSocketHandler {
             }
 
     fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
-        val jsonNode = ObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
-        WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
+        val jsonNode = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
+        when (jsonNode["type"].asText()){
+            MessageType.REGISTER.toString() -> WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
+            MessageType.STATUS.toString() -> WsSessionCentral.sessions[jsonNode["session"].asText()].let {
+                it?.attributes?.set("status", jsonNode["status"].asText())
+                println(WsSessionCentral.sessions[jsonNode["session"].asText()]?.attributes?.get("status"))
+            }
+        }
         return webSocketMessage.payloadAsText
     }
 
+    fun getStatus(status: Status) = Optional.ofNullable(WsSessionCentral.sessions[status.session])
+            .map{Mono.just(Status(status = it.attributes["status"].toString(), session = status.session))}
+            .orElseGet{Mono.just(Status(status = "unavailable", session = status.session))}
+
     fun sendMessage(call: Call) =
-        Optional.ofNullable(WsSessionCentral.sessions[call.userId + call.orgId])
+        Optional.ofNullable(WsSessionCentral.sessions[call.userId.toString() + call.orgId.toString()])
             .map { it.send(Mono.just(it.textMessage(jacksonObjectMapper().writeValueAsString(call)))) }
             .orElseThrow{ResponseStatusException(HttpStatus.NOT_FOUND)}
 

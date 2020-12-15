@@ -15,7 +15,9 @@ class CallController(private val wsSoftphoneHandler: WsSoftphoneHandler) {
 
     @GetMapping
     fun testSSL() = Mono.just("SSL OK")
+        .doFirst { println("RECEBIDO GET") }
 
     @PostMapping
     fun doCall(@RequestBody call: Call) = wsSoftphoneHandler.sendMessage(call)
+        .doFirst{ println("RECEBIDO POST $call")}
 }
