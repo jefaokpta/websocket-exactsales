@@ -33,13 +33,13 @@ class WsSoftphoneHandler: WebSocketHandler {
             }
 
     fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
-        val jsonNode = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
-        when (jsonNode["type"].asText()){
-            MessageType.REGISTER.toString() -> WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
-            MessageType.STATUS.toString() -> WsSessionCentral.sessions[jsonNode["session"].asText()].let {
-                it?.attributes?.set("status", jsonNode["status"].asText())
-                println(WsSessionCentral.sessions[jsonNode["session"].asText()]?.attributes?.get("status"))
-            }
+        jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java).let { jsonNode ->
+                when (jsonNode["type"].asText()){
+                    MessageType.REGISTER.toString() -> WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
+                    MessageType.STATUS.toString() -> WsSessionCentral.sessions[jsonNode["session"].asText()].let {
+                        it?.attributes?.set("status", jsonNode["status"].asText())}
+                    else -> println("DADOS NAO RECONHECIDOS ${webSocketMessage.payloadAsText}")
+                }
         }
         return webSocketMessage.payloadAsText
     }
