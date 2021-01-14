@@ -10,5 +10,6 @@ data class Call(
     val userId: Int,
     val orgId: Int,
     val leadId: Int,
-    val callbackUrl: String
+    val callbackUrl: String,
+    val record: String
 )
