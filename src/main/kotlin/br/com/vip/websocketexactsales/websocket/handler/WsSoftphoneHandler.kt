@@ -1,7 +1,6 @@
 package br.com.vip.websocketexactsales.websocket.handler
 
 import br.com.vip.websocketexactsales.model.*
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.http.HttpStatus
@@ -11,34 +10,34 @@ import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
-import java.lang.Exception
 import java.util.*
 
 @Service
-class WsSoftphoneHandler: WebSocketHandler {
+class WsSoftphoneHandler : WebSocketHandler {
 
     override fun handle(session: WebSocketSession) = session.send(session.receive()
-            .doFirst {
-                println("SESSION ID : ${session.id} CONECTOU")
-            }
-            .map{addSession(it, session)}
-            .map(session::textMessage))
-            .doFinally {
-                WsSessionCentral.sessions.values.remove(session)
-                println("SESSION FOI EMBORA ID: " + session.id)
-            }
+        .doFirst {
+            println("SESSION ID : ${session.id} CONECTOU")
+        }
+        .map { addSession(it, session) }
+        .map(session::textMessage))
+        .doFinally {
+            WsSessionCentral.sessions.values.remove(session)
+            println("SESSION FOI EMBORA ID: " + session.id)
+        }
 
-    fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession) = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
+    fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession) =
+        jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
             .let { jsonNode ->
-                when (jsonNode["type"].asText()){
+                when (jsonNode["type"].asText()) {
                     MessageType.REGISTER.toString() -> {
                         WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
                         jacksonObjectMapper().writeValueAsString(PeerAuth())
                     }
                     MessageType.STATUS.toString() -> {
                         WsSessionCentral.sessions[jsonNode["session"].asText()].let {
-                            it?.attributes?.set("status", jsonNode["status"].asText())}
+                            it?.attributes?.set("status", jsonNode["status"].asText())
+                        }
                         webSocketMessage.payloadAsText
                     }
                     else -> {
@@ -47,16 +46,16 @@ class WsSoftphoneHandler: WebSocketHandler {
                     }
                 }
             }
-        //return webSocketMessage.payloadAsText
+    //return webSocketMessage.payloadAsText
     //}
 
     fun getStatus(status: Status) = Optional.ofNullable(WsSessionCentral.sessions[status.session])
-            .map{Mono.just(Status(status = it.attributes["status"].toString(), session = status.session))}
-            .orElseGet{Mono.just(Status(status = "unavailable", session = status.session))}
+        .map { Mono.just(Status(status = it.attributes["status"].toString(), session = status.session)) }
+        .orElseGet { Mono.just(Status(status = "unavailable", session = status.session)) }
 
     fun sendMessage(call: Call) =
         Optional.ofNullable(WsSessionCentral.sessions[call.userId.toString() + call.orgId.toString()])
             .map { it.send(Mono.just(it.textMessage(jacksonObjectMapper().writeValueAsString(call)))) }
-            .orElseThrow{ResponseStatusException(HttpStatus.NOT_FOUND)}
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 
 }

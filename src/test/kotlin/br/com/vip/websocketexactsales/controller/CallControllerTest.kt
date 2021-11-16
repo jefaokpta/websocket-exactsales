@@ -6,6 +6,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import javax.net.ssl.HttpsURLConnection
 
 
-internal class CallControllerTest{
+internal class CallControllerTest {
 
 }
