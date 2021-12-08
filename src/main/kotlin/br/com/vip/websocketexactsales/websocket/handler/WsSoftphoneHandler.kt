@@ -22,6 +22,7 @@ class WsSoftphoneHandler : WebSocketHandler {
         .map { addSession(it, session) }
         .map(session::textMessage))
         .doFinally {
+
             WsSessionCentral.sessions.values.remove(session)
             println("SESSION FOI EMBORA ID: " + session.id)
         }
@@ -31,7 +32,8 @@ class WsSoftphoneHandler : WebSocketHandler {
             .let { jsonNode ->
                 when (jsonNode["type"].asText()) {
                     MessageType.REGISTER.toString() -> {
-                        WsSessionCentral.sessions["${jsonNode["userId"]}${jsonNode["orgId"]}"] = webSocketSession
+                        WsSessionCentral.sessions["${jsonNode["orgId"]}${jsonNode["userId"]}"] = webSocketSession
+                        UserCentral.setUser(User(jsonNode["orgId"].asInt(), jsonNode["userId"].asInt()))
                         jacksonObjectMapper().writeValueAsString(PeerAuth())
                     }
                     MessageType.STATUS.toString() -> {
@@ -54,7 +56,7 @@ class WsSoftphoneHandler : WebSocketHandler {
         .orElseGet { Mono.just(Status(status = "unavailable", session = status.session)) }
 
     fun sendMessage(call: Call) =
-        Optional.ofNullable(WsSessionCentral.sessions[call.userId.toString() + call.orgId.toString()])
+        Optional.ofNullable(WsSessionCentral.sessions[call.orgId.toString() + call.userId.toString()])
             .map { it.send(Mono.just(it.textMessage(jacksonObjectMapper().writeValueAsString(call)))) }
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 
