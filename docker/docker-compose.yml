@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  app:
+    build: .
+    networks:
+      - websocket
+    restart:
+      on-failure
+  proxy:
+    image: nginx
+    volumes:
+      - ./proxy-conf:/etc/nginx/conf.d/
+      - /etc/ssl:/etc/nginx/certs/
+    networks:
+      - websocket
+    ports:
+      - 8443:443
+    restart:
+      on-failure
+networks:
+  websocket:

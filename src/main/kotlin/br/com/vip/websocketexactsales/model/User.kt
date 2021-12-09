@@ -7,12 +7,11 @@ import java.time.LocalDateTime
  * Date: 08/12/21
  */
 class User(
-    val orgId: Int,
-    val userId: Int,
-    val callId: String = "",
-    val leadId: String = "",
+    val orgId: String,
+    val userId: String,
     val status: Int = 3,
-    val elapsedTime: LocalDateTime = LocalDateTime.now(),
-    val callTime: Int = 0,
+    val elapsedTime: LocalDateTime? = null,
+    val callId: String? = null,
+    val leadId: String? = null,
 ) {
 }

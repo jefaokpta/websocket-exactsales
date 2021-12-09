@@ -7,7 +7,7 @@ package br.com.vip.websocketexactsales.model
 class UserCentral {
     companion object{
 
-        val users = mutableMapOf<Int, MutableMap<Int, User>>()
+        val users = mutableMapOf<String, MutableMap<String, User>>()
 
         fun setUser(user: User){
             if(users.containsKey(user.orgId)){

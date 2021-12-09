@@ -11,6 +11,7 @@ import org.springframework.web.reactive.socket.WebSocketSession
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.util.*
+import kotlin.collections.HashMap
 
 @Service
 class WsSoftphoneHandler : WebSocketHandler {
@@ -22,8 +23,13 @@ class WsSoftphoneHandler : WebSocketHandler {
         .map { addSession(it, session) }
         .map(session::textMessage))
         .doFinally {
-
-            WsSessionCentral.sessions.values.remove(session)
+            val sessionsCopy = HashMap(WsSessionCentral.sessions)
+            sessionsCopy.forEach { (key, sessionStored) ->
+                if (session.id == sessionStored.id) {
+                    WsSessionCentral.sessions.remove(key)
+                    UserCentral.users[key.split("-")[0]]?.remove(key.split("-")[1])
+                }
+            }
             println("SESSION FOI EMBORA ID: " + session.id)
         }
 
@@ -32,8 +38,8 @@ class WsSoftphoneHandler : WebSocketHandler {
             .let { jsonNode ->
                 when (jsonNode["type"].asText()) {
                     MessageType.REGISTER.toString() -> {
-                        WsSessionCentral.sessions["${jsonNode["orgId"]}${jsonNode["userId"]}"] = webSocketSession
-                        UserCentral.setUser(User(jsonNode["orgId"].asInt(), jsonNode["userId"].asInt()))
+                        WsSessionCentral.sessions["${jsonNode["orgId"]}-${jsonNode["userId"]}"] = webSocketSession
+                        UserCentral.setUser(User(jsonNode["orgId"].asText(), jsonNode["userId"].asText()))
                         jacksonObjectMapper().writeValueAsString(PeerAuth())
                     }
                     MessageType.STATUS.toString() -> {
@@ -56,7 +62,7 @@ class WsSoftphoneHandler : WebSocketHandler {
         .orElseGet { Mono.just(Status(status = "unavailable", session = status.session)) }
 
     fun sendMessage(call: Call) =
-        Optional.ofNullable(WsSessionCentral.sessions[call.orgId.toString() + call.userId.toString()])
+        Optional.ofNullable(WsSessionCentral.sessions["${call.orgId}-${call.userId}"])
             .map { it.send(Mono.just(it.textMessage(jacksonObjectMapper().writeValueAsString(call)))) }
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 

@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono
 class StatusController(private val wsSoftphoneHandler: WsSoftphoneHandler) {
 
     @GetMapping("/users/{orgId}")
-    fun getUserStatus(@PathVariable("orgId") orgId: Int) = Mono.justOrEmpty(UserCentral.users[orgId])
+    fun getUserStatus(@PathVariable("orgId") orgId: String) = Mono.justOrEmpty(UserCentral.users[orgId])
         .map { HashMap(it).values.toList() }
         .switchIfEmpty(Mono.just(listOf()))
 
