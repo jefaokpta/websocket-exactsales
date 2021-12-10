@@ -9,9 +9,9 @@ import java.time.LocalDateTime
 class User(
     val orgId: String,
     val userId: String,
-    val status: Int = 3,
-    val elapsedTime: LocalDateTime? = null,
-    val callId: String? = null,
-    val leadId: String? = null,
+    var status: Int = 3,
+    var elapsedTime: LocalDateTime? = null,
+    var callId: String? = null,
+    var leadId: String? = null,
 ) {
 }

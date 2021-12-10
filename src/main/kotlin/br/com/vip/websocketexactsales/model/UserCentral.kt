@@ -11,10 +11,16 @@ class UserCentral {
 
         fun setUser(user: User){
             if(users.containsKey(user.orgId)){
-                users[user.orgId]!![user.userId] = user
+                users[user.orgId]!!["${user.orgId}-${user.userId}"] = user
             }else{
-                users[user.orgId] = mutableMapOf(user.userId to user)
+                users[user.orgId] = mutableMapOf("${user.orgId}-${user.userId}" to user)
             }
+        }
+        fun getUser(orgId: String, userId: String): User?{
+            return users[orgId]?.get("$orgId-$userId")
+        }
+        fun removeUser(orgId: String, userId: String){
+            users[orgId]?.remove("$orgId-$userId")
         }
     }
 
