@@ -96,4 +96,10 @@ class WsSoftphoneHandler : WebSocketHandler {
         }
         .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 
+    fun sendMessageSpyCall(spyCall: SpyCall) = Optional.ofNullable(WsSessionCentral.sessions["${spyCall.orgId}-${spyCall.userId}"])
+        .map { session ->
+            session.send(Mono.just(session.textMessage(jacksonObjectMapper().writeValueAsString(spyCall))))
+        }
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+
 }

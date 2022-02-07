@@ -5,5 +5,5 @@ package br.com.vip.websocketexactsales.model
  * Date: 2020-12-02
  */
 enum class MessageType {
-    CALL, REGISTER, STATUS, PEER
+    CALL, REGISTER, STATUS, PEER, SPY
 }
