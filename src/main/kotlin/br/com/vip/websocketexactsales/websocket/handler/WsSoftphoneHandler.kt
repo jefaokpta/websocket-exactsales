@@ -100,6 +100,6 @@ class WsSoftphoneHandler : WebSocketHandler {
         .map { session ->
             session.send(Mono.just(session.textMessage(jacksonObjectMapper().writeValueAsString(spyCall))))
         }
-        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Sessao nao encontrada.") }
 
 }
