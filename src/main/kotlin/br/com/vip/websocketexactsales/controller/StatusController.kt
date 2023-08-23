@@ -30,4 +30,8 @@ class StatusController(private val wsSoftphoneHandler: WsSoftphoneHandler) {
 
     @GetMapping
     fun listaSessoes() = Mono.justOrEmpty(WsSessionCentral.sessions.keys.toList())
+
+    @CrossOrigin
+    @GetMapping("/ping")
+    fun ping() = Mono.empty<Void>()
 }
