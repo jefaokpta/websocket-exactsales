@@ -1,0 +1,11 @@
+server:
+  error:
+    include-stacktrace: on_param
+    include-message: always
+
+asterisk:
+  host: ${ASTERISK_HOST:ploomes.vipsolutions.com.br}
+  ami:
+    username: ${ASTERISK_AMI_USERNAME:vip-events}
+    password: ${ASTERISK_AMI_PASSWORD:vipEventsPass}
+    port: ${ASTERISK_AMI_PORT:5038}
