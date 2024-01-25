@@ -1,11 +1,16 @@
 package br.com.vip.websocketexactsales.asterisk
 
+import br.com.vip.websocketexactsales.cache.ChannelCache
 import org.asteriskjava.manager.ManagerConnection
 import org.asteriskjava.manager.ManagerConnectionFactory
 import org.asteriskjava.manager.ManagerEventListener
 import org.asteriskjava.manager.action.GetVarAction
 import org.asteriskjava.manager.action.ManagerAction
+import org.asteriskjava.manager.event.DeviceStateChangeEvent
+import org.asteriskjava.manager.event.DialEvent
 import org.asteriskjava.manager.event.ManagerEvent
+import org.asteriskjava.manager.event.NewStateEvent
+import org.asteriskjava.manager.response.GetVarResponse
 import org.asteriskjava.manager.response.ManagerResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -15,7 +20,7 @@ import org.springframework.stereotype.Component
  * Date: 10/10/23
  */
 @Component
-class AmiCache(): ManagerEventListener {
+class AmiCache(private val channelCache: ChannelCache): ManagerEventListener {
 
     @Value("\${asterisk.host}")
     private lateinit var asteriskHost: String
@@ -43,20 +48,39 @@ class AmiCache(): ManagerEventListener {
         println("AMI CONECTADO A ${ami.version} 👍🏼")
     }
 
-    fun sendActionAsync(action: ManagerAction) {
+    private fun sendActionAsync(action: ManagerAction) {
         ami.sendAction(action){
             println("AMI ASYNC RESPONSE: $it")
         }
     }
 
-    fun getVariableAsync(channel: String, variable: String, callback: (ManagerResponse) -> Unit) {
+    private fun getVariableAsync(channel: String, variable: String, callback: (ManagerResponse) -> Unit) {
         ami.sendAction(GetVarAction(channel, variable)){
             callback(it)
         }
     }
 
     override fun onManagerEvent(event: ManagerEvent) {
-        println(event)
+        //println(event)
+        when(event){
+            is NewStateEvent -> {
+                println(event)
+                if (event.channelState == 5) {
+                    getVariableAsync(channelCache.removeChannel(event.channel) ?: return, "DST") {
+                        val response  = it as GetVarResponse
+                        println("AMI ASYNC RESPONSE: ${response.value} - CHANNEL ${event.channel}")
+                    }
+                }
+            }
+            is DialEvent -> {
+                println(event)
+                if (event.subEvent == "Begin") {
+                    channelCache.addChannel(event.channel, event.destination)
+                }
+            }
+            is DeviceStateChangeEvent -> println(event)
+
+        }
         /**
         if (event is VarSetEvent) return // nova feature ok
         if (event is ExtensionStatusEvent) return
