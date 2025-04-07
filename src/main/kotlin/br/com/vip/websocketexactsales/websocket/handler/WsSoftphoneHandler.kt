@@ -12,7 +12,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.collections.HashMap
 
 @Service
 class WsSoftphoneHandler : WebSocketHandler {
@@ -38,7 +37,7 @@ class WsSoftphoneHandler : WebSocketHandler {
         val jsonNode = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
         return when (jsonNode["type"].asText()) {
             MessageType.REGISTER.toString() -> {
-                WsSessionCentral.sessions["${jsonNode["orgId"]}-${jsonNode["userId"]}"] = webSocketSession
+                WsSessionCentral.sessions["${jsonNode["orgId"].asText()}-${jsonNode["userId"].asText()}"] = webSocketSession
                 UserCentral.setUser(User(jsonNode["orgId"].asText(), jsonNode["userId"].asText()))
                 jacksonObjectMapper().writeValueAsString(PeerAuth())
             }
