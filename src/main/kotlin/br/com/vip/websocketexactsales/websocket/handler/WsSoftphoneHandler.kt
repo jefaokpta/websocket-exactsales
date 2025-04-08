@@ -35,13 +35,14 @@ class WsSoftphoneHandler : WebSocketHandler {
 
     fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
         val jsonNode = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
-        return when (jsonNode["type"].asText()) {
-            MessageType.REGISTER.toString() -> {
-                WsSessionCentral.sessions["${jsonNode["orgId"].asText()}-${jsonNode["userId"].asText()}"] = webSocketSession
-                UserCentral.setUser(User(jsonNode["orgId"].asText(), jsonNode["userId"].asText()))
+        val register = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, Register::class.java)
+        return when (register.type) {
+            MessageType.REGISTER -> {
+                WsSessionCentral.sessions["${register.orgId}-${register.userId}"] = webSocketSession
+                UserCentral.setUser(User(register.orgId, register.userId))
                 jacksonObjectMapper().writeValueAsString(PeerAuth())
             }
-            MessageType.STATUS.toString() -> {
+            MessageType.STATUS -> {
                 val session = jsonNode["session"].asText()
                 WsSessionCentral.sessions[session].let {
                     it?.attributes?.set("status", jsonNode["status"].asText())
