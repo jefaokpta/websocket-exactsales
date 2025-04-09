@@ -1,7 +1,6 @@
 package br.com.vip.websocketexactsales.websocket.handler
 
 import br.com.vip.websocketexactsales.model.*
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -33,20 +32,19 @@ class WsSoftphoneHandler : WebSocketHandler {
             println("SESSION FOI EMBORA ID: " + session.id)
         }
 
-    fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
-        val jsonNode = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, ObjectNode::class.java)
-        val register = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, Register::class.java)
-        return when (register.type) {
+    private fun addSession(webSocketMessage: WebSocketMessage, webSocketSession: WebSocketSession): String {
+        val action = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, Action::class.java)
+        return when (action.type) {
             MessageType.REGISTER -> {
-                WsSessionCentral.sessions["${register.orgId}-${register.userId}"] = webSocketSession
-                UserCentral.setUser(User(register.orgId, register.userId))
+                WsSessionCentral.sessions["${action.orgId!!}-${action.userId!!}"] = webSocketSession
+                UserCentral.setUser(User(action.orgId, action.userId))
                 jacksonObjectMapper().writeValueAsString(PeerAuth())
             }
             MessageType.STATUS -> {
-                val session = jsonNode["session"].asText()
+                val session = action.session!!
                 WsSessionCentral.sessions[session].let {
-                    it?.attributes?.set("status", jsonNode["status"].asText())
-                    handleUserStatus(jsonNode, session)
+                    it?.attributes?.set("status", action.status)
+                    handleUserStatus(action)
                 }
                 webSocketMessage.payloadAsText
             }
@@ -58,15 +56,15 @@ class WsSoftphoneHandler : WebSocketHandler {
     }
 
 
-    private fun handleUserStatus(jsonNode: ObjectNode,session: String) {
-        when (jsonNode["status"].asText()) {
+    private fun handleUserStatus(action: Action) {
+        when (action.status) {
             "talking" -> {
-                UserCentral.users[session.split("-")[0]]?.get(session)?.let { user ->
+                UserCentral.users[action.session!!.split("-")[0]]?.get(action.session)?.let { user ->
                     user.status = 2
                 }
             }
             "available" -> {
-                UserCentral.users[session.split("-")[0]]?.get(session)?.let { user ->
+                UserCentral.users[action.session!!.split("-")[0]]?.get(action.session)?.let { user ->
                     user.status = 3
                     user.leadId = null
                     user.callId = null
