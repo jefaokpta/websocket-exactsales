@@ -10,7 +10,7 @@ class UserCentral {
         private val users = mutableMapOf<String, User>()
 
         fun setUser(user: User){
-            users[user.session] = user
+            users["${user.orgId}-${user.userId}"] = user
         }
 
         fun getUser(session: String): User?{
@@ -26,7 +26,7 @@ class UserCentral {
         }
 
         fun listAllByOrgId(orgId: String) =
-            users.filter { it.value.session.split("-")[0] == orgId }
+            users.filter { it.value.orgId == orgId }
             .values.toList()
 
     }

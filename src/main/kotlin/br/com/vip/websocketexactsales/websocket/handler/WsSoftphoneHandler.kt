@@ -37,7 +37,7 @@ class WsSoftphoneHandler : WebSocketHandler {
         return when (action.type) {
             MessageType.REGISTER -> {
                 WsSessionCentral.sessions[action.session] = webSocketSession
-                UserCentral.setUser(User(action.session))
+                UserCentral.setUser(User(action.session.split("-")[0], action.session.split("-")[1]))
                 jacksonObjectMapper().writeValueAsString(PeerAuth())
             }
             MessageType.STATUS -> {
