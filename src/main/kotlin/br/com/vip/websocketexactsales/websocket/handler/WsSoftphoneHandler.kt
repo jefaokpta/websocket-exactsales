@@ -26,7 +26,7 @@ class WsSoftphoneHandler : WebSocketHandler {
             sessionsCopy.forEach { (key, sessionStored) ->
                 if (session.id == sessionStored.id) {
                     WsSessionCentral.sessions.remove(key)
-                    UserCentral.removeUser(key.split("-")[0], key.split("-")[1])
+                    UserCentral.removeUser(key)
                 }
             }
             println("SESSION FOI EMBORA ID: " + session.id)
@@ -36,12 +36,12 @@ class WsSoftphoneHandler : WebSocketHandler {
         val action = jacksonObjectMapper().readValue(webSocketMessage.payloadAsText, Action::class.java)
         return when (action.type) {
             MessageType.REGISTER -> {
-                WsSessionCentral.sessions["${action.orgId!!}-${action.userId!!}"] = webSocketSession
-                UserCentral.setUser(User(action.orgId, action.userId))
+                WsSessionCentral.sessions[action.session] = webSocketSession
+                UserCentral.setUser(User(action.session))
                 jacksonObjectMapper().writeValueAsString(PeerAuth())
             }
             MessageType.STATUS -> {
-                val session = action.session!!
+                val session = action.session
                 WsSessionCentral.sessions[session].let {
                     it?.attributes?.set("status", action.status)
                     handleUserStatus(action)
@@ -59,12 +59,12 @@ class WsSoftphoneHandler : WebSocketHandler {
     private fun handleUserStatus(action: Action) {
         when (action.status) {
             "talking" -> {
-                UserCentral.users[action.session!!.split("-")[0]]?.get(action.session)?.let { user ->
+                UserCentral.getUser(action.session)?.let { user ->
                     user.status = 2
                 }
             }
             "available" -> {
-                UserCentral.users[action.session!!.split("-")[0]]?.get(action.session)?.let { user ->
+                UserCentral.getUser(action.session)?.let { user ->
                     user.status = 3
                     user.leadId = null
                     user.callId = null

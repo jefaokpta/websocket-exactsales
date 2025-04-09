@@ -7,21 +7,28 @@ package br.com.vip.websocketexactsales.model
 class UserCentral {
     companion object{
 
-        val users = mutableMapOf<String, MutableMap<String, User>>()
+        private val users = mutableMapOf<String, User>()
 
         fun setUser(user: User){
-            if(users.containsKey(user.orgId)){
-                users[user.orgId]!!["${user.orgId}-${user.userId}"] = user
-            }else{
-                users[user.orgId] = mutableMapOf("${user.orgId}-${user.userId}" to user)
-            }
+            users[user.session] = user
         }
+
+        fun getUser(session: String): User?{
+            return users[session]
+        }
+
         fun getUser(orgId: String, userId: String): User?{
-            return users[orgId]?.get("$orgId-$userId")
+            return users[ "$orgId-$userId" ]
         }
-        fun removeUser(orgId: String, userId: String){
-            users[orgId]?.remove("$orgId-$userId")
+
+        fun removeUser(session: String){
+            users.remove(session)
         }
+
+        fun listAllByOrgId(orgId: String) =
+            users.filter { it.value.session.split("-")[0] == orgId }
+            .values.toList()
+
     }
 
 }

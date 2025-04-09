@@ -7,8 +7,7 @@ import java.time.LocalDateTime
  * Date: 08/12/21
  */
 class User(
-    val orgId: String,
-    val userId: String,
+    val session: String,
     var status: Int = 3,
     var elapsedTime: LocalDateTime? = null,
     var callId: String? = null,
