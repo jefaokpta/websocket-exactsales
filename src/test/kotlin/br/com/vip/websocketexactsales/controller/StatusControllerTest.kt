@@ -12,6 +12,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Description
 import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Flux
@@ -56,12 +57,12 @@ class StatusControllerTest(
     }
 
     @Test
+    @Description("A Exact consome este User e estes attr sao obrigatorios")
     fun getUserStatusTest() {
-        // A Exact consome este User e estes attr sao obrigatorios
         val mockUser = User(
             orgId = "321",
             userId = "123456",
-            status = 2,
+            status = 2, // 1 = discando, 2 = falando, 3 = disponivel
             elapsedTime = LocalDateTime.now(),
             callId = "789",
             leadId = "101"

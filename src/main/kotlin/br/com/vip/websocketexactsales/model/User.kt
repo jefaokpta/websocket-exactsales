@@ -15,3 +15,9 @@ class User(
     var leadId: String? = null,
 ) {
 }
+
+/*
+* 1 discando
+* 2 talking
+* 3 available
+* */
